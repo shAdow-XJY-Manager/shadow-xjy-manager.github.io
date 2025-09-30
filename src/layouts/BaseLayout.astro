@@ -1,0 +1,25 @@
+---
+import Loading from '../components/Loading.astro';
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>shAdow-XJY Manager</title>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        overflow: hidden; /* 防止滚动 */
+        background: #00000000;
+      }
+    </style>
+  </head>
+  <body>
+    <Loading />
+
+    <slot />
+  </body>
+</html>
