@@ -1,156 +1,261 @@
-<!DOCTYPE html><html lang="en" data-astro-cid-37fxchfa> <head><meta charset="UTF-8"><title>shAdow-XJY Manager</title><style>#flowRainCanvas[data-astro-cid-52om46wh]{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;display:block;background:#0a0a12;--color-bg: #1f174e;--color-bg-2: #151436;--color-bg-3: #000;--color-link: #8596df;--color-link-hover: #723bb7;background:radial-gradient(ellipse at 30% 48%,var(--color-bg) 0,var(--color-bg-2) 45%,var(--color-bg-3) 150%)}html,body{margin:0;padding:0;height:100%;width:100%;overflow:hidden;background:#0000}
-</style></head> <body data-astro-cid-37fxchfa> <canvas id="flowRainCanvas" data-astro-cid-52om46wh></canvas>  <script>
-(() => {
-  const canvas = document.getElementById("flowRainCanvas");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
 
-  let width = window.innerWidth;
-  let height = window.innerHeight;
-  canvas.width = width;
-  canvas.height = height;
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
 
-  const letters = "Loading...";
-  const fontSize = 120;
-  const particleCount = 800;
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
 
-  ctx.font = `${fontSize}px Arial`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="/">
 
-  // --- 创建文字 mask ---
-  const maskCanvas = document.createElement("canvas");
-  const maskCtx = maskCanvas.getContext("2d");
-  maskCanvas.width = width;
-  maskCanvas.height = height;
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="A new GitHub web blog designed myself with the Flutter.">
 
-  function createMask() {
-    maskCtx.clearRect(0, 0, width, height);
-    maskCtx.font = `${fontSize}px Arial`;
-    maskCtx.textAlign = "center";
-    maskCtx.textBaseline = "middle";
-    maskCtx.fillStyle = "#fff";
-    maskCtx.fillText(letters, width / 2, height / 2);
-    return maskCtx.getImageData(0, 0, width, height).data;
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Shadow Blog">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>Shadow Plusing</title>
+  <link rel="manifest" href="manifest.json">
+
+
+
+  <style>
+    html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  background: #2E2E48;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loader {
+  position: relative;
+  width: 75px;
+  height: 100px;
+}
+
+.loader__bar {
+  position: absolute;
+  bottom: 0;
+  width: 10px;
+  height: 50%;
+  background: #fff;
+  transform-origin: center bottom;
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.loader__bar:nth-child(1) {
+  left: 0px;
+  transform: scale(1, 0.2);
+  animation: barUp1 4s infinite;
+}
+
+.loader__bar:nth-child(2) {
+  left: 15px;
+  transform: scale(1, 0.4);
+  animation: barUp2 4s infinite;
+}
+
+.loader__bar:nth-child(3) {
+  left: 30px;
+  transform: scale(1, 0.6);
+  animation: barUp3 4s infinite;
+}
+
+.loader__bar:nth-child(4) {
+  left: 45px;
+  transform: scale(1, 0.8);
+  animation: barUp4 4s infinite;
+}
+
+.loader__bar:nth-child(5) {
+  left: 60px;
+  transform: scale(1, 1);
+  animation: barUp5 4s infinite;
+}
+
+.loader__ball {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-radius: 50%;
+  animation: ball 4s infinite;
+}
+
+@keyframes ball {
+  0% {
+    transform: translate(0, 0);
   }
-
-  let maskData = createMask();
-  const accum = new Uint8Array(width * height);
-
-  // --- 彩色粒子类 ---
-  class Particle {
-    constructor() { this.reset(); }
-    reset() {
-      this.x = Math.random() * width;
-      this.y = Math.random() * -height;
-      this.vy = 1 + Math.random() * 3;
-      this.vx = (Math.random() - 0.5) * 0.5;
-      this.size = 1 + Math.random() * 2;
-      // 随机颜色 HSL
-      this.hue = Math.floor(Math.random() * 360);
-      this.saturation = 70 + Math.random()*30; // 70~100%
-      this.lightness = 50 + Math.random()*20;  // 50~70%
-      this.alpha = 0.7 + Math.random()*0.3;
-    }
-    update() {
-      this.x += this.vx;
-      this.y += this.vy;
-      const px = Math.floor(this.x);
-      const py = Math.floor(this.y);
-      if (px<0 || px>=width || py<0 || py>=height) { this.reset(); return; }
-
-      const alpha = maskData[(py*width + px)*4 + 3];
-      if (alpha > 128) {
-        accum[py*width + px] = 1;
-        this.vy *= 0.5;
-        this.vx = (Math.random()-0.5)*0.3;
-        if (Math.random() < 0.02) this.reset();
-      }
-      if (this.y > height) this.reset();
-    }
-    draw() {
-      ctx.fillStyle = `hsla(${this.hue},${this.saturation}%,${this.lightness}%,${this.alpha})`;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
-      ctx.fill();
-    }
+  5% {
+    transform: translate(8px, -14px);
   }
-
-  const particles = [];
-  for (let i = 0; i < particleCount; i++) particles.push(new Particle());
-
-  function draw() {
-    ctx.clearRect(0,0,width,height);
-
-    // --- 绘制累积雨水 ---
-    const imageData = ctx.getImageData(0,0,width,height);
-    for (let y=0; y<height; y++) {
-      for (let x=0; x<width; x++) {
-        const idx = y*width + x;
-        if (accum[idx]) {
-          const i = idx*4;
-          // 渐变累积色彩
-          const hue = (x + y + performance.now()/10) % 360;
-          const rgb = hslToRgb(hue/360, 0.8, 0.5);
-          imageData.data[i] = rgb[0];
-          imageData.data[i+1] = rgb[1];
-          imageData.data[i+2] = rgb[2];
-          imageData.data[i+3] = 255;
-        }
-      }
-    }
-    ctx.putImageData(imageData,0,0);
-
-    // 绘制粒子
-    particles.forEach(p => { p.draw(); p.update(); });
-
-    // 绘制文字轮廓（低透明度）
-    ctx.fillStyle = "rgba(255,255,255,0.05)";
-    ctx.fillText(letters, width/2, height/2);
-
-    requestAnimationFrame(draw);
+  10% {
+    transform: translate(15px, -10px);
   }
-
-  draw();
-
-  // HSL 转 RGB
-  function hslToRgb(h, s, l){
-    let r, g, b;
-    if(s===0){ r=g=b=l; }
-    else {
-      const hue2rgb=(p,q,t)=>{
-        if(t<0)t+=1;
-        if(t>1)t-=1;
-        if(t<1/6) return p+(q-p)*6*t;
-        if(t<1/2) return q;
-        if(t<2/3) return p+(q-p)*(2/3 - t)*6;
-        return p;
-      }
-      const q = l<0.5 ? l*(1+s) : l+s-l*s;
-      const p = 2*l - q;
-      r=hue2rgb(p,q,h+1/3);
-      g=hue2rgb(p,q,h);
-      b=hue2rgb(p,q,h-1/3);
-    }
-    return [Math.round(r*255), Math.round(g*255), Math.round(b*255)];
+  17% {
+    transform: translate(23px, -24px);
   }
+  20% {
+    transform: translate(30px, -20px);
+  }
+  27% {
+    transform: translate(38px, -34px);
+  }
+  30% {
+    transform: translate(45px, -30px);
+  }
+  37% {
+    transform: translate(53px, -44px);
+  }
+  40% {
+    transform: translate(60px, -40px);
+  }
+  50% {
+    transform: translate(60px, 0);
+  }
+  57% {
+    transform: translate(53px, -14px);
+  }
+  60% {
+    transform: translate(45px, -10px);
+  }
+  67% {
+    transform: translate(37px, -24px);
+  }
+  70% {
+    transform: translate(30px, -20px);
+  }
+  77% {
+    transform: translate(22px, -34px);
+  }
+  80% {
+    transform: translate(15px, -30px);
+  }
+  87% {
+    transform: translate(7px, -44px);
+  }
+  90% {
+    transform: translate(0, -40px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
 
-  // --- Resize ---
-  window.addEventListener("resize",()=>{
-    width = window.innerWidth;
-    height = window.innerHeight;
-    canvas.width = width;
-    canvas.height = height;
-    maskCanvas.width = width;
-    maskCanvas.height = height;
-    ctx.font = `${fontSize}px Arial`;
-    maskData = createMask();
-  });
+@keyframes barUp1 {
+  0% {
+    transform: scale(1, 0.2);
+  }
+  40% {
+    transform: scale(1, 0.2);
+  }
+  50% {
+    transform: scale(1, 1);
+  }
+  90% {
+    transform: scale(1, 1);
+  }
+  100% {
+    transform: scale(1, 0.2);
+  }
+}
 
-})();
-</script>  <h1 style="color:rgb(255, 255, 255); text-align:center; margin-top:100px;">
-shAdow-XJY Manager
-</h1> <p style="color:#ccc; text-align:center;">
-template page, more content coming soon...
-</p>  </body></html>
+@keyframes barUp2 {
+  0% {
+    transform: scale(1, 0.4);
+  }
+  40% {
+    transform: scale(1, 0.4);
+  }
+  50% {
+    transform: scale(1, 0.8);
+  }
+  90% {
+    transform: scale(1, 0.8);
+  }
+  100% {
+    transform: scale(1, 0.4);
+  }
+}
+
+@keyframes barUp3 {
+  0% {
+    transform: scale(1, 0.6);
+  }
+  100% {
+    transform: scale(1, 0.6);
+  }
+}
+
+@keyframes barUp4 {
+  0% {
+    transform: scale(1, 0.8);
+  }
+  40% {
+    transform: scale(1, 0.8);
+  }
+  50% {
+    transform: scale(1, 0.4);
+  }
+  90% {
+    transform: scale(1, 0.4);
+  }
+  100% {
+    transform: scale(1, 0.8);
+  }
+}
+
+@keyframes barUp5 {
+  0% {
+    transform: scale(1, 1);
+  }
+  40% {
+    transform: scale(1, 1);
+  }
+  50% {
+    transform: scale(1, 0.2);
+  }
+  90% {
+    transform: scale(1, 0.2);
+  }
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+  </style>
+</head>
+<body>
+  <div class="loader">
+    <div class="loader__bar"></div>
+    <div class="loader__bar"></div>
+    <div class="loader__bar"></div>
+    <div class="loader__bar"></div>
+    <div class="loader__bar"></div>
+    <div class="loader__ball"></div>
+  </div>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
