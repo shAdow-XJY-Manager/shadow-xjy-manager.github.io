@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_common/flutter_common.dart';
 import '../global/musicPlayer.dart';
 import '../global/navigation/siteNavigation.dart';
-import '../global/siteStyle.dart';
 import '../innerAssets/videoAsset/videoData.dart';
 import '../indexPage/indexVideo/videoWatch.dart';
 import '../indexPage/indexBook/indexBook.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../global/siteStyle.dart';
+import 'package:flutter_common/flutter_common.dart';
 import '../../innerAssets/videoAsset/videoData.dart';
 
 class IndexVideo extends StatefulWidget {

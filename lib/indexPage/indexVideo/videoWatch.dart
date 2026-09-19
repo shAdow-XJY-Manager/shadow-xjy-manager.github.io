@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../global/siteStyle.dart';
+import 'package:flutter_common/flutter_common.dart';
 import '../../global/videoWidget/videoSurface.dart';
 import '../../innerAssets/videoAsset/videoData.dart';
 

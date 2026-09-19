@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:github_blog/global/blurGlass.dart';
+import 'package:flutter_common/flutter_common.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import 'package:url_launcher/url_launcher.dart';
 

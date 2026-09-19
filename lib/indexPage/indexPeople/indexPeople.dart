@@ -1,7 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-
-import '../../global/GradientProgressBar.dart';
+import 'package:flutter_common/flutter_common.dart';
 
 class IndexPeople extends StatefulWidget {
   const IndexPeople({Key? key}) : super(key: key);

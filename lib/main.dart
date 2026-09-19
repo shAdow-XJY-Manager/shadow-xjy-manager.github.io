@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:github_blog/router/router.dart';
+import 'package:shadow_xjy_manager_github_io/router/router.dart';
 
 void main() async {
   runApp(const MyApp());
