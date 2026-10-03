@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:github_blog/global/videoWidget/videoSurface.dart';
-import 'package:github_blog/indexPage/indexVideo/indexVideo.dart';
-import 'package:github_blog/indexPage/indexVideo/videoWatch.dart';
-import 'package:github_blog/innerAssets/videoAsset/videoData.dart';
-import 'package:github_blog/router/router.dart';
-import 'package:github_blog/homepage/homePage.dart';
+import 'package:shadow_xjy_manager_github_io/global/videoWidget/videoSurface.dart';
+import 'package:shadow_xjy_manager_github_io/indexPage/indexVideo/indexVideo.dart';
+import 'package:shadow_xjy_manager_github_io/indexPage/indexVideo/videoWatch.dart';
+import 'package:shadow_xjy_manager_github_io/innerAssets/videoAsset/videoData.dart';
+import 'package:shadow_xjy_manager_github_io/router/router.dart';
+import 'package:shadow_xjy_manager_github_io/homepage/homePage.dart';
 
 void main() {
   testWidgets('Selecting a mobile drawer section exits the watch route', (
@@ -23,13 +23,13 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.tap(find.byTooltip('打开导航'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('nav-2')));
+    await tester.tap(find.descendant(of: find.byType(Drawer), matching: find.text('工具')));
     await tester.pumpAndSettle();
     expect(find.byType(VideoWatch), findsNothing);
     expect(find.byType(HomePage), findsOneWidget);
-    expect(find.text('Websites'), findsWidgets);
+    expect(find.text('把小任务，做得顺手。'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
   test('Raw video assets resolve once against root or deployment subpath', () {

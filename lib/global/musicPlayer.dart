@@ -116,8 +116,8 @@ class MusicPlayerState extends State<MusicPlayer> {
           : () => _operate(command),
       style: IconButton.styleFrom(
         foregroundColor: primary
-            ? const Color(0xFFB69AFF)
-            : const Color(0xFFE7E2FA),
+            ? const Color(0xFFD6EF36)
+            : const Color(0xFFF4F2E9),
       ),
       icon: _busy && primary
           ? const SizedBox(

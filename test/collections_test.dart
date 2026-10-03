@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:github_blog/indexPage/indexProgram/indexProgram.dart';
+import 'package:shadow_xjy_manager_github_io/indexPage/indexProgram/indexProgram.dart';
 
 void main() {
   for (final size in [
@@ -28,16 +28,11 @@ void main() {
           tester.getTopLeft(find.byKey(const ValueKey('collection-0')));
       final second =
           tester.getTopLeft(find.byKey(const ValueKey('collection-1')));
-      if (size.width < 760) {
-        expect(second.dy, greaterThan(first.dy));
-      } else {
-        expect(second.dx, greaterThan(first.dx));
-        expect(second.dy, first.dy);
-      }
+      expect(second.dy, greaterThan(first.dy));
       await tester
           .ensureVisible(find.byKey(const ValueKey('open-collection-1')));
       await tester.pumpAndSettle();
-      expect(find.text('Open reading space'), findsOneWidget);
+      expect(find.text('进入阅读'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(seconds: 4));
@@ -65,9 +60,9 @@ void main() {
     await tester.ensureVisible(find.byKey(const ValueKey('open-collection-0')));
     await tester.tap(find.byKey(const ValueKey('open-collection-0')));
     await tester.pumpAndSettle();
-    expect(find.text('Could not open this collection. Please try again.'),
+    expect(find.text('暂时无法打开，请重试。'),
         findsOneWidget);
-    await tester.tap(find.text('Retry'));
+    await tester.tap(find.text('重试'));
     await tester.pumpAndSettle();
     expect(launches, [collectionEntries[0].url, collectionEntries[0].url]);
   });

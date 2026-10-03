@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:github_blog/global/navigation/siteNavigation.dart';
+import 'package:shadow_xjy_manager_github_io/global/navigation/siteNavigation.dart';
 
 void main() {
   testWidgets(

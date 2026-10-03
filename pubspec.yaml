@@ -6,7 +6,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.9.0 <4.0.0"
+  sdk: ">=3.9.2 <4.0.0"
   flutter: ">=3.35.0"
 
 dependencies:
@@ -43,14 +43,13 @@ flutter:
   assets:
     - assets/fonts/WDXL_LICENSE.txt
     - assets/fonts/site/Roboto_LICENSE.txt
+    - assets/fonts/site/NotoSansSC_LICENSE.txt
     - assets/image/
     - assets/image/video/
     - assets/image/favorite/
     - assets/image/collections/
-    - assets/image/book/redesign/
 
 
-    - assets/icon/
 
     - assets/music/
 
@@ -58,6 +57,12 @@ flutter:
 
 
   fonts:
+    - family: FrequencySans
+      fonts:
+        - asset: assets/fonts/site/FrequencySans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/site/FrequencySans-Black.ttf
+          weight: 900
     - family: WDXL
       fonts:
         - asset: assets/fonts/WDXLLubrifontSC-Regular.ttf

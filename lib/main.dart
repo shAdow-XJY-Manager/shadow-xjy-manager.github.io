@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shadow_xjy_manager_github_io/router/router.dart';
+import 'package:flutter_common/flutter_common.dart';
+import 'router/router.dart';
 
 void main() async {
   runApp(const MyApp());
@@ -13,21 +14,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'shAdowPlusing',
-      theme: ThemeData(
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        brightness: Brightness.dark,
-        fontFamily: 'WDXL',
-        primaryColor: primaryColor,
-        canvasColor: canvasColor,
-        scaffoldBackgroundColor: scaffoldBackgroundColor,
-      ),
+      title: 'shAdow 工作室 · 频率站',
+      theme: FrequencyTheme.dark(fontFamily: 'FrequencySans'),
       onGenerateInitialRoutes: initialRoutes,
       onGenerateRoute: onGenerateRoute,
     );
   }
 }
-
-const primaryColor = Color(0xFF685BFF);
-const canvasColor = Color(0xFF2E2E48);
-const scaffoldBackgroundColor = Color(0xFF464667);

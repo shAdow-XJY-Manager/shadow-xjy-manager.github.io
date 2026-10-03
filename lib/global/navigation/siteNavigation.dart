@@ -130,8 +130,8 @@ class _SiteNavigationState extends State<SiteNavigation> {
                                           child: Icon(_icons[index],
                                               size: 24,
                                               color: selected
-                                                  ? const Color(0xFFB69AFF)
-                                                  : const Color(0xFFE7E2FA))),
+                                                  ? const Color(0xFFD6EF36)
+                                                  : const Color(0xFFF4F2E9))),
                                       Expanded(
                                           child: ExcludeSemantics(
                                               excluding: !expanded,

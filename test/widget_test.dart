@@ -1,126 +1,57 @@
-import 'dart:ui' show SemanticsAction;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:github_blog/indexPage/indexBook/indexBook.dart';
-import 'package:github_blog/global/navigation/siteNavigation.dart';
+import 'package:shadow_xjy_manager_github_io/main.dart';
+import 'package:shadow_xjy_manager_github_io/portal/projectCatalog.dart';
+import 'package:shadow_xjy_manager_github_io/innerAssets/projectAsset/projectData.dart';
 
 void main() {
-  Future<void> showProjects(WidgetTester tester, Size size,
-      {double scale = 1}) async {
-    tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = size;
-    await tester.pumpWidget(MaterialApp(
-        home: MediaQuery(
-            data: MediaQueryData(
-                size: size, textScaler: TextScaler.linear(scale)),
-            child: const Scaffold(body: IndexBook()))));
-    await tester.pumpAndSettle();
-  }
-
-  for (final width in [320.0, 360.0, 390.0, 430.0, 768.0, 1280.0]) {
-    testWidgets('Projects remain usable at width $width', (tester) async {
+  test('directory identifies all repositories uniquely and separates libraries from apps', () {
+    expect(projectEntries, hasLength(47));
+    expect(projectEntries.map((p) => p.id).toSet(), hasLength(47));
+    expect(projectById('websiteTools')!.matches('图片'), isTrue);
+    expect(projectById('blurGlass')!.launchUrl, isNull);
+    expect(projectById('missing-project'), isNull);
+  });
+  for (final width in [320.0, 390.0, 768.0, 1280.0]) {
+    testWidgets('home to tools to project details works at width $width', (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = Size(width, 900);
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      await showProjects(tester, Size(width, 844));
-      expect(tester.takeException(), isNull);
-      final lastProject = find.byKey(const ValueKey('project-4'));
-      await tester.scrollUntilVisible(lastProject, 180,
-          scrollable: find.byType(Scrollable).first);
+      await tester.pumpWidget(const MyApp());
       await tester.pumpAndSettle();
-      await tester.ensureVisible(lastProject);
-      await tester.tap(lastProject);
+      expect(find.text('创作，\n探索，玩一会。'), findsOneWidget);
+      final enter = find.byKey(const ValueKey('enter-tools'));
+      await tester.ensureVisible(enter);
+      await tester.tap(enter);
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.byKey(const ValueKey('open-project')));
-      expect(find.text(websiteProjects[4].description), findsOneWidget);
+      expect(find.text('把小任务，做得顺手。'), findsOneWidget);
+      final search = find.byType(TextField);
+      await tester.enterText(search, '图片');
+      await tester.pumpAndSettle();
+      expect(find.text('1 项'), findsOneWidget);
+      final project = find.byKey(const ValueKey('project-websiteTools'));
+      await tester.ensureVisible(project);
+      await tester.tap(project);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('launch-websiteTools')), findsOneWidget);
+      await tester.tap(find.text('返回作品目录'));
+      await tester.pumpAndSettle();
+      expect(find.text('1 项'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   }
-
-  testWidgets(
-      'Accordion collapses and selected project survives responsive round trip',
-      (tester) async {
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    await showProjects(tester, const Size(1280, 800));
-    await tester.tap(find.byKey(const ValueKey('project-1')));
+  testWidgets('empty search can clear back to all 47 entries', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: Scaffold(body: ProjectCatalog())));
     await tester.pumpAndSettle();
-    await showProjects(tester, const Size(390, 844));
-    expect(find.text(websiteProjects[1].description), findsOneWidget);
-    final handle = tester.ensureSemantics();
-    final data = tester
-        .getSemantics(find.byKey(const ValueKey('project-semantics-1')))
-        .getSemanticsData();
-    expect(data.hasAction(SemanticsAction.tap), isTrue);
-    expect(data.flagsCollection.isExpanded, isTrue);
-    handle.dispose();
-    await tester.tap(find.byKey(const ValueKey('project-1')));
+    expect(find.text('47 项'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'no-frequency-project-987654');
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('open-project')), findsNothing);
-    await tester.tap(find.byKey(const ValueKey('project-1')));
+    expect(find.text('还没有匹配的作品。'), findsOneWidget);
+    await tester.ensureVisible(find.text('清除搜索与筛选'));
+    await tester.tap(find.text('清除搜索与筛选'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('open-project')), findsOneWidget);
-    await showProjects(tester, const Size(1280, 800));
-    expect(find.text(websiteProjects[1].description), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('Large text and short landscape can scroll to the last project',
-      (tester) async {
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    await showProjects(tester, const Size(320, 568), scale: 1.6);
-    expect(tester.takeException(), isNull);
-    await showProjects(tester, const Size(772, 302));
-    await tester.scrollUntilVisible(
-        find.byKey(const ValueKey('project-4')), 160);
-    await tester.tap(find.byKey(const ValueKey('project-4')));
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(find.byKey(const ValueKey('open-project')));
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets(
-      'Sidebar animation leaves content constraints unchanged and supports keyboard',
-      (tester) async {
-    var layouts = 0;
-    var selected = -1;
-    await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-            body: Stack(children: [
-      Positioned.fill(
-          left: 72,
-          child: LayoutBuilder(builder: (_, constraints) {
-            layouts++;
-            return const ColoredBox(
-                key: ValueKey('content'), color: Colors.black);
-          })),
-      Positioned(
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: 220,
-          child: SiteNavigation(
-              wide: false, selectedIndex: 2, onSelected: (i) => selected = i)),
-    ]))));
-    final initialLayouts = layouts;
-    final initialSize = tester.getSize(find.byKey(const ValueKey('content')));
-    await tester.tap(find.byKey(const ValueKey('navigation-toggle')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 90));
-    expect(tester.getSize(find.byKey(const ValueKey('content'))), initialSize);
-    await tester.pumpAndSettle();
-    expect(layouts, initialLayouts);
-    await tester.tap(find.byKey(const ValueKey('nav-2')));
-    expect(selected, 2);
-    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
-    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
-    await tester.pumpAndSettle();
-    expect(selected, 0);
-    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
-    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
-    await tester.pumpAndSettle();
-    expect(selected, 1);
+    expect(find.text('47 项'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

@@ -56,11 +56,11 @@ class _IndexVideoState extends State<IndexVideo> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (MediaQuery.sizeOf(context).width >= 700) ...[
-                  Text('Videos', style: siteHeading.copyWith(fontSize: 36)),
+                  Text('放映室', style: siteHeading.copyWith(fontSize: 36)),
                   const SizedBox(height: 8),
                 ],
                 const Text(
-                  'Small moments, captured in motion.',
+                  '一些被镜头留住的小瞬间。',
                   style: siteBody,
                 ),
                 const SizedBox(height: 28),
@@ -131,6 +131,7 @@ class _IndexVideoState extends State<IndexVideo> {
       fit: BoxFit.cover,
       cacheWidth: 960,
       excludeFromSemantics: true,
+      errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.image_not_supported_outlined, color: siteMuted)),
     ),
   );
   Widget _caption(VideoEntry video, {bool compact = false}) => Column(
@@ -146,13 +147,13 @@ class _IndexVideoState extends State<IndexVideo> {
           const Icon(
             Icons.play_circle_outline,
             size: 22,
-            color: Color(0xFFB69AFF),
+            color: Color(0xFFD6EF36),
           ),
           const SizedBox(width: 8),
           Flexible(
             child: Text(
-              'Watch video',
-              style: siteBody.copyWith(color: const Color(0xFFE7E2FA)),
+              '播放视频',
+              style: siteBody.copyWith(color: const Color(0xFFF4F2E9)),
             ),
           ),
         ],
