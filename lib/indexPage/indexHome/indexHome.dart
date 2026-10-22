@@ -4,101 +4,381 @@ import 'package:flutter_common/flutter_common.dart';
 class IndexHome extends StatelessWidget {
   const IndexHome({super.key, this.onSelected});
   final ValueChanged<int>? onSelected;
+
   void _open(BuildContext context, int section) {
-    if (onSelected != null) { onSelected!(section); } else {
-      Navigator.of(context).pushNamed(switch(section) { 2 => '/tools', 6 => '/read', 7 => '/play', _ => '/projects' });
+    if (onSelected != null) {
+      onSelected!(section);
+    } else {
+      Navigator.of(context).pushNamed(switch (section) {
+        2 => '/tools',
+        6 => '/read',
+        7 => '/play',
+        _ => '/projects',
+      });
     }
   }
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
-    final mobile = box.maxWidth < 700;
-    final largeText = MediaQuery.textScalerOf(context).scale(16) > 24;
-    final compactHero = box.maxWidth < 1100 || largeText;
-    final pad = mobile ? 24.0 : 64.0;
-    final titleSize = mobile || largeText ? 42.0 : (box.maxWidth < 1100 ? 60.0 : 76.0);
-    final copy = Padding(padding: EdgeInsets.fromLTRB(pad, mobile ? 28 : 56, pad, 48),
-      child: ConstrainedBox(constraints: BoxConstraints(maxWidth: compactHero ? double.infinity : box.maxWidth * .55),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('FOR A BRIGHTER ORDINARY', style: TextStyle(fontSize: 12, letterSpacing: 3, color: FrequencyPalette.muted)),
-          const SizedBox(height: 24),
-          Text('创作，\n探索，玩一会。', style: TextStyle(
-            color: FrequencyPalette.accent, fontFamily: 'FrequencySans',
-            fontSize: titleSize, fontWeight: FontWeight.w900, height: 1.12)),
-          const SizedBox(height: 24),
-          const Text('一座属于创作者的在线工作台，\n把灵感变成可用的东西。',
-            style: TextStyle(fontSize: 20, height: 1.6, color: FrequencyPalette.muted)),
-          const SizedBox(height: 36),
-          _action(context),
-        ])));
-    return SingleChildScrollView(key: const PageStorageKey('home-scroll'), child: Column(children: [
-      if (compactHero) ...[
-        SizedBox(height: mobile ? 240 : 320, width: double.infinity, child: _heroImage(Alignment.centerRight)),
-        Align(alignment: Alignment.centerLeft, child: copy),
-      ] else
-        Container(width: double.infinity, constraints: const BoxConstraints(minHeight: 610), child: Stack(alignment: Alignment.topLeft, children: [
-          Positioned.fill(child: _heroImage(Alignment.topCenter)),
-          copy,
-        ])),
-      Padding(padding: EdgeInsets.symmetric(horizontal: mobile ? 24 : (box.maxWidth < 1100 ? 48 : 160), vertical: 12),
-        child: box.maxWidth < 1100 || largeText
-          ? Material(color: FrequencyPalette.surface,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12),
-                side: const BorderSide(color: FrequencyPalette.border)),
-              child: Padding(padding: const EdgeInsets.all(12), child: Wrap(
-                alignment: WrapAlignment.center, spacing: 8, runSpacing: 12, children: [
-                  _channel(context, '工具', Icons.tune, 2, active: true),
-                  _channel(context, '阅读', Icons.menu_book_outlined, 6),
-                  _channel(context, '游戏', Icons.sports_esports_outlined, 7),
-                ])))
-          : LayoutBuilder(builder: (context, panel) => SizedBox(height: panel.maxWidth / 7,
-              child: Stack(fit: StackFit.expand, children: [
-                Image.asset('assets/image/frequency-panel.webp', fit: BoxFit.fill, excludeFromSemantics: true,
-                  errorBuilder: (_, __, ___) => const ColoredBox(color: FrequencyPalette.surface)),
-                Positioned(left: panel.maxWidth * .065, top: panel.maxWidth / 7 * .25,
-                  child: Text('FREQUENCY\nTERMINAL', style: TextStyle(color: FrequencyPalette.muted,
-                    fontSize: (panel.maxWidth / 1167 * 12).clamp(10, 12).toDouble(), height: 1.8, letterSpacing: 1.5))),
-                for (final task in [('工具', 2, .387), ('阅读', 6, .537), ('游戏', 7, .693)])
-                  Positioned(left: panel.maxWidth * task.$3 - 56, bottom: 12, width: 112,
-                    child: Semantics(selected: task.$2 == 2, child: TextButton(
-                      onPressed: () => _open(context, task.$2),
-                      style: TextButton.styleFrom(minimumSize: const Size(80, 48),
-                        foregroundColor: task.$2 == 2 ? FrequencyPalette.accent : FrequencyPalette.muted),
-                      child: Text(task.$1, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600))))),
-              ])))),
-      Padding(padding: EdgeInsets.fromLTRB(pad, 44, pad, 40), child: SizedBox(width: double.infinity, child: Wrap(
-        alignment: WrapAlignment.spaceBetween, crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 48, runSpacing: 24, children: [
-          const Text('SMALL TOOLS\nA RICHER LIFE', style: TextStyle(fontSize: 12, height: 1.8, letterSpacing: 2, color: FrequencyPalette.muted)),
-          Wrap(spacing: 24, runSpacing: 16, children: [
-            TextButton.icon(onPressed: () => _open(context, 6), icon: const Icon(Icons.arrow_forward), label: const Text('继续阅读')),
-            TextButton.icon(onPressed: () => _open(context, 7), icon: const Icon(Icons.arrow_forward), label: const Text('玩一局')),
-          ]),
-        ]))),
-    ]));
-  });
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) {
+      final largeText = MediaQuery.textScalerOf(context).scale(16) > 24;
+      final compact = box.maxWidth < 720 || largeText;
+      final padding = box.maxWidth < 600 ? 20.0 : 48.0;
+      return SingleChildScrollView(
+        key: const PageStorageKey('home-scroll'),
+        padding: EdgeInsets.fromLTRB(padding, compact ? 28 : 48, padding, 32),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1200),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _hero(context, compact, box.maxWidth < 1100 ? 52 : 64),
+                const SizedBox(height: 32),
+                const Divider(height: 1),
+                const SizedBox(height: 28),
+                _heading('随手好用', '处理日常的小需求，把注意力留给更重要的创作。'),
+                const SizedBox(height: 20),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: FrequencyPalette.border),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    children: [
+                      _tool(
+                        context,
+                        compact,
+                        Icons.photo_size_select_large_outlined,
+                        '图片尺寸调整',
+                        '调整尺寸与格式，文件在你的浏览器处理。',
+                        'websiteTools',
+                      ),
+                      const Divider(height: 1),
+                      _tool(
+                        context,
+                        compact,
+                        Icons.code,
+                        '编码 / 解码',
+                        '转换文本，处理常见的编码与解码。',
+                        'websiteTools',
+                      ),
+                      const Divider(height: 1),
+                      _tool(
+                        context,
+                        compact,
+                        Icons.search,
+                        '频率搜索',
+                        '选择搜索引擎，从一个关键词开始探索。',
+                        'customSearchPage',
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
+                _heading('换个频率', '读一段故事，或留一点时间认真玩一会。'),
+                const SizedBox(height: 20),
+                if (compact) ...[
+                  _channel(
+                    context,
+                    6,
+                    '文字阅览',
+                    '沉下心来，读一些好内容。',
+                    Icons.menu_book_outlined,
+                    const Alignment(.8, 0),
+                  ),
+                  const SizedBox(height: 16),
+                  _channel(
+                    context,
+                    7,
+                    '频率游戏中心',
+                    '短局、解谜与策略，选一款就开始。',
+                    Icons.sports_esports_outlined,
+                    Alignment.centerRight,
+                  ),
+                ] else
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _channel(
+                          context,
+                          6,
+                          '文字阅览',
+                          '沉下心来，读一些好内容。',
+                          Icons.menu_book_outlined,
+                          const Alignment(.8, 0),
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: _channel(
+                          context,
+                          7,
+                          '频率游戏中心',
+                          '短局、解谜与策略，选一款就开始。',
+                          Icons.sports_esports_outlined,
+                          Alignment.centerRight,
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
 
-  Widget _heroImage(Alignment alignment) => Image.asset('assets/image/frequency-hero.webp',
-    fit: BoxFit.cover, alignment: alignment, excludeFromSemantics: true,
-    errorBuilder: (_, __, ___) => const ColoredBox(color: FrequencyPalette.background));
+  Widget _hero(BuildContext context, bool compact, double titleSize) {
+    final copy = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'FOCUS WORKBENCH',
+          style: TextStyle(
+            color: FrequencyPalette.muted,
+            fontSize: 12,
+            letterSpacing: 3,
+          ),
+        ),
+        const SizedBox(height: 18),
+        Text(
+          '今天，想做点什么？',
+          style: TextStyle(
+            fontSize: compact ? 34 : titleSize,
+            height: 1.2,
+            fontWeight: FontWeight.w900,
+            color: FrequencyPalette.text,
+          ),
+        ),
+        const SizedBox(height: 18),
+        const Text(
+          '从一件小事开始，让灵感变成作品。',
+          style: TextStyle(
+            fontSize: 18,
+            height: 1.6,
+            color: FrequencyPalette.muted,
+          ),
+        ),
+        const SizedBox(height: 28),
+        FilledButton.icon(
+          key: const ValueKey('enter-tools'),
+          onPressed: () => _open(context, 2),
+          style: FilledButton.styleFrom(
+            backgroundColor: FrequencyPalette.amber,
+            minimumSize: Size(compact ? 48 : 240, 56),
+            foregroundColor: FrequencyPalette.background,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          ),
+          icon: const Icon(Icons.arrow_forward),
+          label: const Text(
+            '进入工具台',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          ),
+        ),
+      ],
+    );
+    if (compact) return copy;
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 280),
+      child: Row(
+        children: [
+          Expanded(flex: 6, child: copy),
+          const SizedBox(width: 24),
+          Expanded(
+            flex: 4,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Transform.scale(
+                scale: 1.4,
+                alignment: Alignment.topRight,
+                child: Image.asset(
+                  'assets/image/frequency-hero.webp',
+                  height: 280,
+                  fit: BoxFit.cover,
+                  alignment: Alignment.centerRight,
+                  excludeFromSemantics: true,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-  Widget _action(BuildContext context) => SizedBox(width: 370,
-    height: MediaQuery.textScalerOf(context).scale(16) > 24 ? 172 : 116,
-    child: Stack(fit: StackFit.expand, children: [
-      Image.asset('assets/image/frequency-action.webp', fit: BoxFit.fill, excludeFromSemantics: true,
-        errorBuilder: (_, __, ___) => const ColoredBox(color: FrequencyPalette.amber)),
-      Padding(padding: const EdgeInsets.all(12), child: FilledButton.icon(
-        key: const ValueKey('enter-tools'),
-        style: FilledButton.styleFrom(backgroundColor: Colors.transparent,
-          foregroundColor: FrequencyPalette.background, textStyle: TextStyle(fontSize: MediaQuery.textScalerOf(context).scale(16) > 24 ? (MediaQuery.sizeOf(context).width < 700 ? 18 : 24) : (MediaQuery.sizeOf(context).width < 700 ? 26 : 32), height: 1.1, fontWeight: FontWeight.w900),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-        onPressed: () => _open(context, 2), icon: const Icon(Icons.arrow_forward, size: 30), label: const Text('进入工具台'))),
-    ]));
+  Widget _heading(String title, String subtitle) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        title,
+        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
+      ),
+      const SizedBox(height: 8),
+      Text(
+        subtitle,
+        style: const TextStyle(
+          fontSize: 16,
+          height: 1.6,
+          color: FrequencyPalette.muted,
+        ),
+      ),
+    ],
+  );
 
-  Widget _channel(BuildContext context, String label, IconData icon, int section, {bool active = false}) =>
-    SizedBox(width: 112, child: TextButton(onPressed: () => _open(context, section),
-      style: TextButton.styleFrom(foregroundColor: active ? FrequencyPalette.accent : FrequencyPalette.muted,
-        minimumSize: const Size(80, 72)), child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, size: 28), const SizedBox(height: 8), Text(label, style: const TextStyle(fontSize: 18)),
-        ])));
+  Widget _tool(
+    BuildContext context,
+    bool compact,
+    IconData icon,
+    String title,
+    String description,
+    String id,
+  ) => Material(
+    color: Colors.transparent,
+    child: InkWell(
+      onTap: () => Navigator.of(context).pushNamed('/projects/$id'),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: EdgeInsets.all(compact ? 16 : 20),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: FrequencyPalette.selected,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: FrequencyPalette.accent, size: 26),
+            ),
+            SizedBox(width: compact ? 16 : 24),
+            Expanded(
+              child: compact
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          description,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            height: 1.6,
+                            color: FrequencyPalette.muted,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Expanded(
+                          flex: 4,
+                          child: Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 24),
+                        Expanded(
+                          flex: 6,
+                          child: Text(
+                            description,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              height: 1.6,
+                              color: FrequencyPalette.muted,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+            if (!compact) ...[
+              const SizedBox(width: 24),
+              const Icon(Icons.arrow_forward, color: FrequencyPalette.muted),
+            ],
+          ],
+        ),
+      ),
+    ),
+  );
+
+  Widget _channel(
+    BuildContext context,
+    int section,
+    String title,
+    String subtitle,
+    IconData icon,
+    Alignment alignment,
+  ) => Material(
+    color: FrequencyPalette.surface,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(8),
+      side: const BorderSide(color: FrequencyPalette.border),
+    ),
+    clipBehavior: Clip.antiAlias,
+    child: InkWell(
+      onTap: () => _open(context, section),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            if (MediaQuery.textScalerOf(context).scale(16) <= 24 &&
+                MediaQuery.sizeOf(context).width >= 500) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: Image.asset(
+                  'assets/image/frequency-hero.webp',
+                  width: 96,
+                  height: 110,
+                  fit: BoxFit.cover,
+                  alignment: alignment,
+                  excludeFromSemantics: true,
+                ),
+              ),
+              const SizedBox(width: 20),
+            ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(icon, color: FrequencyPalette.accent),
+                  const SizedBox(height: 10),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: FrequencyPalette.muted,
+                      fontSize: 14,
+                      height: 1.6,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Icon(Icons.arrow_forward, color: FrequencyPalette.muted),
+          ],
+        ),
+      ),
+    ),
+  );
 }
