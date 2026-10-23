@@ -47,7 +47,7 @@ void main() {
       await tester.tap(project);
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('launch-websiteTools')), findsOneWidget);
-      await tester.tap(find.text('返回作品目录'));
+      await tester.tap(find.text('返回工具'));
       await tester.pumpAndSettle();
       expect(find.text('1 项'), findsOneWidget);
       expect(tester.takeException(), isNull);

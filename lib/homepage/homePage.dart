@@ -8,43 +8,24 @@ import '../indexPage/indexFavorite/indexFavorite.dart';
 import '../indexPage/indexHome/indexHome.dart';
 import '../indexPage/indexVideo/indexVideo.dart';
 import '../portal/projectCatalog.dart';
+import '../router/router.dart';
+import '../router/browser_history.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({
-    super.key,
-    this.video,
-    this.initialSection = 0,
-    this.onSectionSelected,
-    this.project,
-    this.errorRoute,
-  });
-  final VideoEntry? video;
-  final int initialSection;
-  final ValueChanged<int>? onSectionSelected;
-  final ProjectEntry? project;
-  final String? errorRoute;
+  const HomePage({super.key, required this.navigation, required this.location});
+  final StudioRouterDelegate navigation;
+  final StudioLocation location;
   @override
   State<HomePage> createState() => HomePageState();
 }
 
 class HomePageState extends State<HomePage> {
   final _music = GlobalKey<MusicPlayerState>();
+  final _scaffold = GlobalKey<ScaffoldState>();
   final _pageStorage = PageStorageBucket();
+  final Map<int, Widget> _contents = {};
   bool _navigating = false;
-  late final int _selectedIndex = widget.video == null
-      ? widget.initialSection
-      : 1;
-  static const _routes = [
-    '/',
-    '/videos',
-    '/tools',
-    '/projects',
-    '/about',
-    '/favorites',
-    '/read',
-    '/play',
-    '/listen',
-  ];
+  int get _selectedIndex => widget.location.section;
   static const _labels = [
     '首页',
     '放映室',
@@ -57,82 +38,145 @@ class HomePageState extends State<HomePage> {
     '背景音乐',
   ];
 
-  Future<void> _openVideo(VideoEntry video) async {
-    await _music.currentState?.suspend();
-    if (!mounted) return;
-    final section = await Navigator.of(
-      context,
-    ).pushNamed('/videos/${video.id}');
-    if (!mounted) return;
-    _music.currentState?.release();
-    if (section is int) _select(section);
+  @override
+  void didUpdateWidget(covariant HomePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.location.path != widget.location.path) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _scaffold.currentState?.closeDrawer();
+        if (_selectedIndex == 8 && widget.location.isSection) {
+          _music.currentState?.release();
+        } else {
+          _music.currentState?.suspend();
+        }
+      });
+    }
   }
 
-  void selectSection(int index) => _select(index);
-  Future<void> _select(int index) async {
-    if (index < 0 || index >= _routes.length || _navigating) return;
-    if (widget.video != null) {
-      Navigator.of(context).pop(index);
-      widget.onSectionSelected?.call(index);
-      return;
-    }
-    if (index == _selectedIndex &&
-        widget.project == null &&
-        widget.errorRoute == null)
-      return;
+  Future<void> _navigate(String path, {bool waitForExit = false}) async {
+    _scaffold.currentState?.closeDrawer();
+    if (_navigating || path == widget.location.path) return;
     _navigating = true;
-    await _music.currentState?.suspend();
-    if (!mounted) return;
+    String? entry;
     try {
-      await Navigator.of(context).pushNamed(_routes[index]);
+      await _music.currentState?.suspend();
+      if (!mounted) return;
+      Router.navigate(context, () {
+        entry = widget.navigation.go(path);
+      });
     } finally {
       _navigating = false;
-      if (mounted) _music.currentState?.release();
     }
+    if (waitForExit) await widget.navigation.untilExit(entry);
   }
 
+  Future<void> _openVideo(VideoEntry video) =>
+      _navigate('/videos/${video.id}', waitForExit: true);
+  void selectSection(int index) => _select(index);
+  Future<void> _select(int index) async {
+    if (index < 0 || index >= studioSectionPaths.length) return;
+    await _navigate(studioSectionPaths[index]);
+  }
+
+  void _back() {
+    _scaffold.currentState?.closeDrawer();
+    if (widget.navigation.canGoBack && requestBrowserBack()) return;
+    Router.neglect(context, widget.navigation.backLocal);
+  }
+
+  Widget _section(int index) => _contents.putIfAbsent(
+    index,
+    () => switch (index) {
+      0 => IndexHome(
+        onSelected: _select,
+        onOpenProject: (id) => _navigate('/projects/$id'),
+      ),
+      1 => IndexVideo(onOpen: _openVideo),
+      2 => _catalog('工具'),
+      3 => _catalog('全部'),
+      4 => _about(),
+      5 => const IndexFavorite(),
+      6 => _catalog('阅读'),
+      7 => _catalog('游戏'),
+      8 => _listening(),
+      _ => const SizedBox.shrink(),
+    },
+  );
+
+  Widget _catalog(String section) => ProjectCatalog(
+    section: section,
+    onOpenProject: (project) => _navigate('/projects/${project.id}'),
+    onBrowseAll: () => _select(3),
+  );
+
   Widget _body() {
-    if (widget.errorRoute != null)
-      return SingleChildScrollView(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.explore_off_outlined,
-                  color: FrequencyPalette.accent,
-                  size: 48,
+    final location = widget.location;
+    final overlay = !location.isSection;
+    _section(_selectedIndex);
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Offstage(
+          offstage: overlay,
+          child: IndexedStack(
+            index: _selectedIndex,
+            children: List.generate(
+              studioSectionPaths.length,
+              (index) => ExcludeFocus(
+                excluding: overlay || index != _selectedIndex,
+                child: PrimaryScrollController.none(
+                  child: TickerMode(
+                    enabled: !overlay && index == _selectedIndex,
+                    child: _contents[index] ?? const SizedBox.shrink(),
+                  ),
                 ),
-                const SizedBox(height: 24),
-                const Text('这个频率暂时没有节目。', style: TextStyle(fontSize: 28)),
-                const SizedBox(height: 12),
-                const Text('地址可能已变化。可以回工作室，或从作品目录重新查找。'),
-                const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: () => _select(0),
-                  child: const Text('回到工作室'),
-                ),
-              ],
+              ),
             ),
           ),
         ),
-      );
-    if (widget.video != null) return VideoWatch(video: widget.video!);
-    if (widget.project != null) return ProjectCatalog(project: widget.project);
-    return switch (_selectedIndex) {
-      0 => IndexHome(onSelected: _select),
-      1 => IndexVideo(onOpen: _openVideo),
-      2 => const ProjectCatalog(section: '工具'),
-      3 => const ProjectCatalog(),
-      4 => _about(),
-      5 => const IndexFavorite(),
-      6 => const ProjectCatalog(section: '阅读'),
-      7 => const ProjectCatalog(section: '游戏'),
-      8 => _listening(),
-      _ => const ProjectCatalog(),
-    };
+        if (location.isUnknown)
+          SingleChildScrollView(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.explore_off_outlined,
+                      color: FrequencyPalette.accent,
+                      size: 48,
+                    ),
+                    const SizedBox(height: 24),
+                    const Text('这个频率暂时没有节目。', style: TextStyle(fontSize: 28)),
+                    const SizedBox(height: 12),
+                    const Text('地址可能已变化。可以回工作室，或从作品目录重新查找。'),
+                    const SizedBox(height: 24),
+                    FilledButton(
+                      onPressed: () => _select(0),
+                      child: const Text('回到工作室'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        if (location.project != null)
+          ProjectCatalog(
+            key: ValueKey('detail-${location.path}'),
+            project: location.project,
+            onBack: _back,
+            returnLabel: location.returnLabel,
+          ),
+        if (location.video != null)
+          VideoWatch(
+            key: ValueKey(location.path),
+            video: location.video!,
+            onBack: _back,
+          ),
+      ],
+    );
   }
 
   static const _icons = [
@@ -188,6 +232,7 @@ class HomePageState extends State<HomePage> {
   );
 
   Widget _sidebar({bool drawer = false}) => Container(
+    key: const ValueKey('studio-sidebar'),
     width: 280,
     decoration: const BoxDecoration(
       border: Border(right: BorderSide(color: FrequencyPalette.border)),
@@ -267,8 +312,9 @@ class HomePageState extends State<HomePage> {
   );
 
   Widget _navigationItem(int index, bool drawer, {bool secondary = false}) {
-    final selected = index == _selectedIndex && widget.errorRoute == null;
+    final selected = index == _selectedIndex && !widget.location.isUnknown;
     return Semantics(
+      key: ValueKey('nav-$index'),
       selected: selected,
       child: Material(
         color: selected ? FrequencyPalette.selected : Colors.transparent,
@@ -276,7 +322,6 @@ class HomePageState extends State<HomePage> {
         child: InkWell(
           borderRadius: BorderRadius.circular(6),
           onTap: () {
-            if (drawer) Navigator.of(context).pop();
             _select(index);
           },
           child: Container(
@@ -329,6 +374,7 @@ class HomePageState extends State<HomePage> {
           constraints.maxWidth < 900 ||
           MediaQuery.textScalerOf(context).scale(16) > 24;
       return Scaffold(
+        key: _scaffold,
         backgroundColor: FrequencyPalette.background,
         drawer: mobile ? Drawer(child: _sidebar(drawer: true)) : null,
         body: SafeArea(

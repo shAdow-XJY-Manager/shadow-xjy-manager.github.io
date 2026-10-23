@@ -5,8 +5,9 @@ import '../../global/videoWidget/videoSurface.dart';
 import '../../innerAssets/videoAsset/videoData.dart';
 
 class VideoWatch extends StatefulWidget {
-  const VideoWatch({super.key, required this.video});
+  const VideoWatch({super.key, required this.video, this.onBack});
   final VideoEntry video;
+  final VoidCallback? onBack;
   @override
   State<VideoWatch> createState() => _VideoWatchState();
 }
@@ -70,7 +71,7 @@ class _VideoWatchState extends State<VideoWatch> {
               children: [
                 TextButton.icon(
                   key: const ValueKey('back-to-videos'),
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: widget.onBack ?? () => Navigator.of(context).pop(),
                   icon: const Icon(Icons.arrow_back),
                   label: const Text('Back to Videos'),
                 ),

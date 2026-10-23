@@ -5,6 +5,7 @@ import 'package:shadow_xjy_manager_github_io/indexPage/indexVideo/indexVideo.dar
 import 'package:shadow_xjy_manager_github_io/indexPage/indexVideo/videoWatch.dart';
 import 'package:shadow_xjy_manager_github_io/innerAssets/videoAsset/videoData.dart';
 import 'package:shadow_xjy_manager_github_io/router/router.dart';
+import 'package:shadow_xjy_manager_github_io/main.dart';
 import 'package:shadow_xjy_manager_github_io/homepage/homePage.dart';
 
 void main() {
@@ -15,17 +16,13 @@ void main() {
     tester.view.physicalSize = const Size(390, 844);
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(
-      const MaterialApp(
-        initialRoute: '/videos/summer-preview',
-        onGenerateInitialRoutes: initialRoutes,
-        onGenerateRoute: onGenerateRoute,
-      ),
-    );
+    await tester.pumpWidget(const MyApp(initialPath: '/videos/summer-preview'));
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('打开导航'));
     await tester.pumpAndSettle();
-    await tester.tap(find.descendant(of: find.byType(Drawer), matching: find.text('工具')));
+    await tester.tap(
+      find.descendant(of: find.byType(Drawer), matching: find.text('工具')),
+    );
     await tester.pumpAndSettle();
     expect(find.byType(VideoWatch), findsNothing);
     expect(find.byType(HomePage), findsOneWidget);
@@ -162,13 +159,40 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  test(
-    'Video deep links have a Videos list beneath them for back navigation',
-    () {
-      final routes = initialRoutes('/videos/summer-preview');
-      expect(routes.length, 2);
-      expect(routes.last.settings.name, '/videos/summer-preview');
-      expect(initialRoutes('/videos/unknown').length, 1);
+  testWidgets(
+    'Video deep links return to Videos without stacking another application shell',
+    (tester) async {
+      await tester.pumpWidget(
+        const MyApp(initialPath: '/videos/summer-preview'),
+      );
+      await tester.pumpAndSettle();
+      final shell = tester.state<HomePageState>(find.byType(HomePage));
+      expect(find.byType(VideoWatch), findsOneWidget);
+      expect(
+        StudioRouterDelegate.of(
+          tester.element(find.byType(HomePage)),
+        ).currentConfiguration.path,
+        '/videos/summer-preview',
+      );
+      await tester.ensureVisible(find.byKey(const ValueKey('back-to-videos')));
+      await tester.tap(find.byKey(const ValueKey('back-to-videos')));
+      await tester.pumpAndSettle();
+      expect(find.byType(VideoWatch), findsNothing);
+      expect(find.byType(IndexVideo), findsOneWidget);
+      expect(tester.state<HomePageState>(find.byType(HomePage)), same(shell));
+      expect(
+        StudioRouterDelegate.of(
+          tester.element(find.byType(HomePage)),
+        ).currentConfiguration.path,
+        '/videos',
+      );
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpWidget(const MyApp(initialPath: '/videos/unknown'));
+      await tester.pumpAndSettle();
+      expect(find.byType(VideoWatch), findsNothing);
+      expect(find.text('这个频率暂时没有节目。'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     },
   );
 }

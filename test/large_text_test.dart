@@ -4,24 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shadow_xjy_manager_github_io/main.dart';
 import 'package:shadow_xjy_manager_github_io/portal/projectCatalog.dart';
 
-Widget _largeTextApp() => Builder(
-  builder: (context) {
-    final app = const MyApp().build(context) as MaterialApp;
-    return MaterialApp(
-      debugShowCheckedModeBanner: app.debugShowCheckedModeBanner,
-      title: app.title,
-      theme: app.theme,
-      initialRoute: app.initialRoute,
-      onGenerateInitialRoutes: app.onGenerateInitialRoutes,
-      onGenerateRoute: app.onGenerateRoute,
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(
-          context,
-        ).copyWith(textScaler: const TextScaler.linear(2)),
-        child: child!,
-      ),
-    );
-  },
+Widget _largeTextApp() => MyApp(
+  builder: (context, child) => MediaQuery(
+    data: MediaQuery.of(
+      context,
+    ).copyWith(textScaler: const TextScaler.linear(2)),
+    child: child!,
+  ),
 );
 
 Finder _button(String label) => find.ancestor(
@@ -133,7 +122,7 @@ void main() {
         final launch = find.byKey(const ValueKey('launch-websiteTools'));
         await visible(launch);
         expect(tester.widget<ButtonStyleButton>(launch).onPressed, isNotNull);
-        await tap(_button('返回作品目录'));
+        await tap(_button('返回工具'));
         route('/tools');
         expect(
           tester.widget<TextField>(find.byType(TextField)).controller!.text,

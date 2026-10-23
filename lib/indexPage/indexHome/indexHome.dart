@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_common/flutter_common.dart';
 
 class IndexHome extends StatelessWidget {
-  const IndexHome({super.key, this.onSelected});
+  const IndexHome({super.key, this.onSelected, this.onOpenProject});
   final ValueChanged<int>? onSelected;
+  final ValueChanged<String>? onOpenProject;
 
   void _open(BuildContext context, int section) {
     if (onSelected != null) {
@@ -238,7 +239,13 @@ class IndexHome extends StatelessWidget {
   ) => Material(
     color: Colors.transparent,
     child: InkWell(
-      onTap: () => Navigator.of(context).pushNamed('/projects/$id'),
+      onTap: () {
+        if (onOpenProject != null) {
+          onOpenProject!(id);
+        } else {
+          Navigator.of(context).pushNamed('/projects/$id');
+        }
+      },
       borderRadius: BorderRadius.circular(8),
       child: Padding(
         padding: EdgeInsets.all(compact ? 16 : 20),
